@@ -47,7 +47,7 @@ export default function Index() {
       style={styles.container}
     >
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome to ViolationLedger! test</Text>
+        <Text style={styles.title}>Welcome to ViolationLedger!</Text>
         <Text style={styles.subtitle}>
           {isLogin ? "Please log in to continue" : "Create your account"}
         </Text>

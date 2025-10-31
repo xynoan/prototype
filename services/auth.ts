@@ -1,17 +1,10 @@
 import * as Crypto from 'expo-crypto';
 import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    User
+  signInWithEmailAndPassword,
+  signOut,
+  User
 } from 'firebase/auth';
-import {
-    doc,
-    getDoc,
-    setDoc,
-    Timestamp
-} from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth } from '../config/firebase';
 
 // Hash password using SHA-256
 export const hashPassword = async (password: string): Promise<string> => {
@@ -27,13 +20,7 @@ export const verifyPassword = async (password: string, hashedPassword: string): 
   return newHash === hashedPassword;
 };
 
-// User data interface
-export interface UserData {
-  email: string;
-  hashedPassword: string;
-  createdAt: Timestamp;
-  lastLogin?: Timestamp;
-}
+// User data interface was removed along with Firestore usage
 
 // Sign up new user
 // export const signUp = async (email: string, password: string): Promise<User> => {
@@ -67,14 +54,6 @@ export const signIn = async (email: string, password: string): Promise<User> => 
     // Sign in with Firebase Auth
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Update last login timestamp in Firestore
-    const userDocRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (userDoc.exists()) {
-      await setDoc(userDocRef, { lastLogin: Timestamp.now() }, { merge: true });
-    }
 
     return user;
   } catch (error: any) {
