@@ -1,3 +1,4 @@
+import { getIdTokenResult } from "firebase/auth";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { auth } from "../config/firebase";
 import { signIn } from "../services/auth";
 
 export default function Index() {
@@ -28,7 +30,21 @@ export default function Index() {
     try {
       if (isLogin) {
         await signIn(email, password);
-        Alert.alert("Success", "Logged in successfully!");
+        const user = auth.currentUser;
+        let message = "Logged in successfully!";
+        if (user) {
+          try {
+            const tokenResult = await getIdTokenResult(user);
+            const role = (tokenResult.claims?.role as string) || "";
+            const normalized = role.toLowerCase();
+            if (["guard", "bpso", "admin"].includes(normalized)) {
+              message = `Logged in as ${normalized}.`;
+            }
+          } catch (e) {
+            // ignore claim fetch errors and keep generic message
+          }
+        }
+        Alert.alert("Success", message);
       } else {
         // await signUp(email, password);
         // Alert.alert("Success", "Account created successfully!");

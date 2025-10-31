@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Firebase
+violationledger-3c82b-firebase-adminsdk-fbsvc-a95301efd1.json
