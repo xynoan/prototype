@@ -1,5 +1,7 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -8,14 +10,35 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { signIn } from "../services/auth";
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+  const handleAuth = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+        Alert.alert("Success", "Logged in successfully!");
+      } else {
+        // await signUp(email, password);
+        // Alert.alert("Success", "Account created successfully!");
+        // setIsLogin(true);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -24,8 +47,10 @@ export default function Index() {
       style={styles.container}
     >
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome to ViolationLedger!</Text>
-        <Text style={styles.subtitle}>Please log in to continue</Text>
+        <Text style={styles.title}>Welcome to ViolationLedger! test</Text>
+        <Text style={styles.subtitle}>
+          {isLogin ? "Please log in to continue" : "Create your account"}
+        </Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
@@ -38,6 +63,7 @@ export default function Index() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
+            editable={!isLoading}
           />
         </View>
 
@@ -52,12 +78,35 @@ export default function Index() {
             secureTextEntry
             autoCapitalize="none"
             autoComplete="password"
+            editable={!isLoading}
           />
         </View>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        <TouchableOpacity 
+          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]} 
+          onPress={handleAuth}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.loginButtonText}>
+              {isLogin ? "Login" : "Sign Up"}
+            </Text>
+          )}
         </TouchableOpacity>
+
+        {/* <TouchableOpacity 
+          style={styles.switchButton} 
+          onPress={() => setIsLogin(!isLogin)}
+          disabled={isLoading}
+        >
+          <Text style={styles.switchButtonText}>
+            {isLogin 
+              ? "Don't have an account? Sign Up" 
+              : "Already have an account? Login"}
+          </Text>
+        </TouchableOpacity> */}
 
       </View>
     </KeyboardAvoidingView>
@@ -125,9 +174,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
+  loginButtonDisabled: {
+    opacity: 0.6,
+  },
   loginButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  switchButton: {
+    marginTop: 16,
+    alignItems: "center",
+  },
+  switchButtonText: {
+    color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
