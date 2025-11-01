@@ -1,5 +1,6 @@
-import { getIdTokenResult } from "firebase/auth";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { getIdTokenResult, onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,6 +20,28 @@ export default function Index() {
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const tokenResult = await getIdTokenResult(user);
+          const role = (tokenResult.claims?.role as string) || "";
+          const normalized = role.toLowerCase();
+          if (normalized === "guard") {
+            router.replace("/guard");
+          }
+          // Add other role redirects here if needed
+        } catch (e) {
+          // ignore claim fetch errors
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [router]);
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -31,20 +54,21 @@ export default function Index() {
       if (isLogin) {
         await signIn(email, password);
         const user = auth.currentUser;
-        let message = "Logged in successfully!";
         if (user) {
           try {
             const tokenResult = await getIdTokenResult(user);
             const role = (tokenResult.claims?.role as string) || "";
             const normalized = role.toLowerCase();
-            if (["guard", "bpso", "admin"].includes(normalized)) {
-              message = `Logged in as ${normalized}.`;
+            if (normalized === "guard") {
+              router.replace("/guard");
+              return;
             }
+            // Add other role redirects here if needed
+            Alert.alert("Success", "Logged in successfully!");
           } catch (e) {
-            // ignore claim fetch errors and keep generic message
+            Alert.alert("Success", "Logged in successfully!");
           }
         }
-        Alert.alert("Success", message);
       } else {
         // await signUp(email, password);
         // Alert.alert("Success", "Account created successfully!");
