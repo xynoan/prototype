@@ -132,7 +132,7 @@ export default function GuardDashboard() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>Hi Guard!</Text>
+      <Text style={styles.greeting}>Hi Guard!!!</Text>
       
       <TouchableOpacity
         style={styles.button}
