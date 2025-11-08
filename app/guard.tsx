@@ -85,6 +85,7 @@ export default function GuardDashboard() {
         <Text style={styles.visitorDetailText}>
           Vehicle: {formatVehicleCategory(item.vehicleCategory)}
         </Text>
+        <Text style={styles.visitorDetailText}>GPS ID: {item.gpsId}</Text>
       </View>
     </View>
   );

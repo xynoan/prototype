@@ -7,6 +7,7 @@ export interface VisitorData {
   hostName: string;
   plateNumber: string;
   vehicleCategory: string;
+  gpsId: string;
   createdAt: Timestamp;
   createdBy: string; // guard user ID
 }
@@ -20,7 +21,8 @@ export const createVisitor = async (
   hostId: string,
   hostName: string,
   plateNumber: string,
-  vehicleCategory: string
+  vehicleCategory: string,
+  gpsId: string
 ): Promise<string> => {
   try {
     const user = auth.currentUser;
@@ -34,6 +36,7 @@ export const createVisitor = async (
       hostName,
       plateNumber: plateNumber.trim().toUpperCase(),
       vehicleCategory,
+      gpsId: gpsId.trim(),
       createdAt: Timestamp.now(),
       createdBy: user.uid,
     };

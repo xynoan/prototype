@@ -31,6 +31,7 @@ export default function NewVisitor() {
   const [selectedHost, setSelectedHost] = useState<DropdownOption | null>(null);
   const [plateNumber, setPlateNumber] = useState("");
   const [selectedVehicleCategory, setSelectedVehicleCategory] = useState<DropdownOption | null>(null);
+  const [gpsId, setGpsId] = useState("");
   const [hosts, setHosts] = useState<DropdownOption[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,6 +75,10 @@ export default function NewVisitor() {
       Alert.alert("Error", "Please select a vehicle category");
       return;
     }
+    if (!gpsId.trim()) {
+      Alert.alert("Error", "Please enter the GPS ID");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -83,7 +88,8 @@ export default function NewVisitor() {
         selectedHost.id,
         selectedHost.label,
         plateNumber,
-        selectedVehicleCategory.id
+        selectedVehicleCategory.id,
+        gpsId
       );
 
       Alert.alert(
@@ -98,6 +104,7 @@ export default function NewVisitor() {
               setSelectedHost(null);
               setPlateNumber("");
               setSelectedVehicleCategory(null);
+              setGpsId("");
               router.back();
             },
           },
@@ -166,6 +173,18 @@ export default function NewVisitor() {
               value={selectedVehicleCategory?.id || null}
               onSelect={setSelectedVehicleCategory}
               placeholder="Select vehicle category"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>GPS ID</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter GPS device ID"
+              placeholderTextColor="#999"
+              value={gpsId}
+              onChangeText={setGpsId}
+              autoCapitalize="characters"
             />
           </View>
 
