@@ -15,28 +15,47 @@ import {
 import { auth } from "../config/firebase";
 import { signIn } from "../services/auth";
 
+// --- HELPER FUNCTION FOR REDIRECTING ---
+const redirectUser = async (user: any, router: any) => {
+    try {
+        const tokenResult = await getIdTokenResult(user);
+        const role = (tokenResult.claims?.role as string) || "";
+        const normalized = role.toLowerCase();
+
+        if (normalized === "guard") {
+            router.replace("/guard");
+            return true; // Successfully redirected
+        }
+        if (normalized === "bpso") {
+            router.replace("/bpso"); // BPSO REDIRECT
+            return true; // Successfully redirected
+        }
+        
+        // --- ADDED FALLBACK REDIRECT HERE ---
+        // If the user is logged in but has no recognized role claim, 
+        // default them to the BPSO dashboard (or a generic dashboard)
+        router.replace("/bpso");
+        return true; 
+        
+    } catch (e) {
+        // If fetching claims fails, we cannot determine the route,
+        // so we fail the redirect (returning false)
+        return false;
+    }
+};
+
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true); // Assuming always login for now
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Check if user is already logged in
+  // Check if user is already logged in (on app start)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try {
-          const tokenResult = await getIdTokenResult(user);
-          const role = (tokenResult.claims?.role as string) || "";
-          const normalized = role.toLowerCase();
-          if (normalized === "guard") {
-            router.replace("/guard");
-          }
-          // Add other role redirects here if needed
-        } catch (e) {
-          // ignore claim fetch errors
-        }
+        await redirectUser(user, router);
       }
     });
 
@@ -52,29 +71,25 @@ export default function Index() {
     setIsLoading(true);
     try {
       if (isLogin) {
+        // 1. Sign In
         await signIn(email, password);
         const user = auth.currentUser;
+
         if (user) {
-          try {
-            const tokenResult = await getIdTokenResult(user);
-            const role = (tokenResult.claims?.role as string) || "";
-            const normalized = role.toLowerCase();
-            if (normalized === "guard") {
-              router.replace("/guard");
-              return;
+            // 2. Check Role and Redirect
+            const redirected = await redirectUser(user, router);
+            
+            if (!redirected) {
+                // NOTE: This block should now rarely be hit due to the fallback 
+                // inside redirectUser, but it remains for theoretical safety.
+                Alert.alert("Success", "Logged in successfully!");
             }
-            // Add other role redirects here if needed
-            Alert.alert("Success", "Logged in successfully!");
-          } catch (e) {
-            Alert.alert("Success", "Logged in successfully!");
-          }
         }
       } else {
-        // await signUp(email, password);
-        // Alert.alert("Success", "Account created successfully!");
-        // setIsLogin(true);
+        // Sign Up logic commented out
       }
     } catch (error: any) {
+      // This handles failed password/email or other Firebase sign-in errors
       Alert.alert("Error", error.message || "Authentication failed");
     } finally {
       setIsLoading(false);
@@ -122,8 +137,8 @@ export default function Index() {
           />
         </View>
 
-        <TouchableOpacity 
-          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]} 
+        <TouchableOpacity
+          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
           onPress={handleAuth}
           disabled={isLoading}
         >
@@ -135,19 +150,6 @@ export default function Index() {
             </Text>
           )}
         </TouchableOpacity>
-
-        {/* <TouchableOpacity 
-          style={styles.switchButton} 
-          onPress={() => setIsLogin(!isLogin)}
-          disabled={isLoading}
-        >
-          <Text style={styles.switchButtonText}>
-            {isLogin 
-              ? "Don't have an account? Sign Up" 
-              : "Already have an account? Login"}
-          </Text>
-        </TouchableOpacity> */}
-
       </View>
     </KeyboardAvoidingView>
   );
